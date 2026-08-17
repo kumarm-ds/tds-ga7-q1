@@ -12,16 +12,15 @@ def check_permissions(perms):
         return ["EXCESS_PERMISSION"]
     return []
 
-def check_pr_safety(payload):
+def check_workflow_safety(payload):
     violations = []
     wf = payload["workflow"]
-    if payload.get("event") == "pull_request":
-        if wf.get("trigger") == "pull_request_target":
-            violations.append("UNSAFE_PR_TRIGGER")
-        if not (wf.get("testsPassed") is True
-                and wf.get("matrixComplete") is True
-                and wf.get("failFast") is False):
-            violations.append("TESTS_INCOMPLETE")
+    if wf.get("trigger") == "pull_request_target":
+        violations.append("UNSAFE_PR_TRIGGER")
+    if not (wf.get("testsPassed") is True
+            and wf.get("matrixComplete") is True
+            and wf.get("failFast") is False):
+        violations.append("TESTS_INCOMPLETE")
     return violations
 
 def check_actions(actions):
@@ -64,7 +63,7 @@ def release_gate():
 
     violations = []
     violations += check_permissions(wf.get("permissions", {}))
-    violations += check_pr_safety(payload)
+    violations += check_workflow_safety(payload)
     violations += check_actions(wf.get("actions", []))
     violations += check_image(payload.get("image", {}))
     violations += check_production(payload)
